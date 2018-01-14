@@ -25,8 +25,9 @@ class baiduMusic(QtGui.QMainWindow,Ui_MainWindow):
         self.bwThread = SpiderThread(str(singers))
         self.bwThread.singerSignal.connect(self.pInfo)
         self.bwThread.start()
-    def pInfo(self,ls):
+    def pInfo(self,ls,tsongs):
         self.textBrowser.setText(ls)
+        self.lineEdit_songs.setText(tsongs)
 
 
 

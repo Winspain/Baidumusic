@@ -40,8 +40,7 @@ class SpiderThread(QtCore.QThread):
     '''根据查询内容和页数获取sid'''
     def getSidsbyName(query, pages):
         api = 'http://music.baidu.com/search/song?'
-        data = 's=1&key=%s&jump=0&start=%%s&size=20&third_type=0' % query % pages
-
+        data = 's=1&key=%s&jump=0&start=%s&size=20&third_type=0' % (query,pages)
         response = requests.get(url=api, params=data)
         # print(response.status_code)
         html = response.text  # html中双引号为quot
@@ -94,6 +93,6 @@ class SpiderThread(QtCore.QThread):
             self.singerSignal.emit(str(self.mp3_names))
         #self.textBrowser.setText(str(self.mp3_names))
         #baiduMusic.textBrowser.setText(str(self.mp3_names))
-        self.singerSignal.emit(str(self.mp3_names))
+        self.singerSignal.emit(str(self.mp3_names),str(self.totalSongs))
         #print('self.singerSignal.emit'+str(self.mp3_names))
 
