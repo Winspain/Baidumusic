@@ -3,21 +3,22 @@
 # @Author  : Winspain
 # @File    : threads.py
 # @Software: PyCharm
-import spider
+
 import requests
 import re
 import json
-from PyQt4 import QtCore, QtGui, uic
-from BD import Ui_MainWindow
-from spider import baiduMusic
+from PyQt4 import QtCore
 
 class SpiderThread(QtCore.QThread):
     mp3_names = []
     singerSignal = QtCore.pyqtSignal(str)
+    numSignal = QtCore.pyqtSignal(str)
     '''百度音乐下载多线程'''
-    def __init__(self,singer,parent=None):
+    def __init__(self,singer,re_path,download_num,parent=None):
         super(SpiderThread,self).__init__(parent)
         self.singer = singer
+        self.re_path = re_path
+        self.download_num = download_num
     '''根据sid下载MP3'''
     def getMp3bySid(self,sid):
         # sid = '121353608'
@@ -33,7 +34,8 @@ class SpiderThread(QtCore.QThread):
         response = requests.get(mp3_url)
         '''持久化'''
         fileName = '%s.mp3' % mp3_name
-        with open('F:\\pycode3\\百度音乐\\music\\' + '%s.mp3' % mp3_name, 'wb') as f:
+        filePath = self.re_path
+        with open(filePath + '%s.mp3' % mp3_name, 'wb') as f:
             f.write(response.content)
         '''将歌曲名打印到UI界面'''
         self.mp3_names.append(mp3_name)
@@ -42,12 +44,10 @@ class SpiderThread(QtCore.QThread):
         api = 'http://music.baidu.com/search/song?'
         data = 's=1&key=%s&jump=0&start=%s&size=20&third_type=0' % (query,pages)
         response = requests.get(url=api, params=data)
-        # print(response.status_code)
         html = response.text  # html中双引号为quot
         # print(html.encode("iso-8859-1").decode('utf-8'))
         '''sid&quot;:311782498'''
         sids = re.findall(r'sid&quot;:(\d+)', html)
-        # print(sids)
         return sids
     '''根据歌手查找歌曲总数'''
     def getSize(query):
@@ -86,13 +86,9 @@ class SpiderThread(QtCore.QThread):
         for i in totalPages:
             allSid = SpiderThread.getSidsbyName(query= self.singer,pages= i)
             allSids.extend(allSid)
-        nums = int(totalSongs)
-        nums = 5
-        for j in range(nums):
-            SpiderThread.getMp3bySid(self,allSids[j])
+        nums = int(self.download_num)
+        for countnums in range(nums):
+            SpiderThread.getMp3bySid(self,allSids[countnums])
             self.singerSignal.emit(str(self.mp3_names))
-        #self.textBrowser.setText(str(self.mp3_names))
-        #baiduMusic.textBrowser.setText(str(self.mp3_names))
-        self.singerSignal.emit(str(self.mp3_names),str(self.totalSongs))
-        #print('self.singerSignal.emit'+str(self.mp3_names))
+        self.numSignal.emit(str(totalSongs))
 
